@@ -46,42 +46,53 @@ Spawn the `theme-customizer` agent to:
 - Update spacing and border radius
 - Apply theme tokens throughout
 
-### 5. Quality Checks
+### 5. Type Check (MANDATORY!)
 
-After agents complete:
+**CRITICAL:** Before validation, verify no TypeScript errors exist.
 
 ```bash
-# Type checking
-cd backend && npm run type-check
-cd storefront && npm run type-check
+# Type check all workspaces
+make type-check
+```
 
-# Linting
-cd backend && npm run lint
-cd storefront && npm run lint
+**If type check fails:**
+- ❌ **STOP immediately**
+- ❌ Read the TypeScript errors
+- ❌ Fix the issues in the generated code
+- ❌ Re-run `make type-check`
+- ❌ **DO NOT proceed to validation until type check passes**
 
-# Build verification
-cd backend && npm run build
-cd storefront && npm run build
+**Only proceed to validation after:**
+```
+✅ Type check passed with zero errors
 ```
 
 ### 6. Automated Testing & Validation (CRITICAL!)
 
 **IMPORTANT:** Implementation is NOT complete until all validation tests pass.
 
-#### 6.1: Start Services
+#### 6.1: Verify Services Running
+
+**Note:** Services should already be running via `make dev` with hot reload enabled. Changes from agents are automatically picked up.
+
+Just verify they're healthy:
 
 ```bash
-# Start backend + storefront
-make dev
+# Check backend health
+curl -s http://localhost:9000/health || echo "⚠️ Backend not running"
 
-# Wait for services to be ready
-sleep 10
+# Check storefront
+curl -s http://localhost:3000 > /dev/null && echo "✅ Storefront running" || echo "⚠️ Storefront not running"
+
+# Check logs for errors
+make tail-logs | head -20
 ```
 
-Verify:
-- Backend runs at http://localhost:9000
-- Storefront runs at http://localhost:3000
-- No startup errors in logs
+If services aren't running, start them:
+```bash
+make dev
+sleep 10  # Wait for services to be ready
+```
 
 #### 6.2: Run Comprehensive Validation
 

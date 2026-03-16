@@ -20,9 +20,10 @@ async function getProduct(handle: string) {
 export default async function ProductPage({
   params,
 }: {
-  params: { handle: string }
+  params: Promise<{ handle: string }>
 }) {
-  const product = await getProduct(params.handle)
+  const { handle } = await params
+  const product = await getProduct(handle)
 
   if (!product) {
     notFound()

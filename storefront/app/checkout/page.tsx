@@ -111,8 +111,12 @@ export default function CheckoutPage() {
     }
   }, [checkoutSettings?.marketing_opt_in])
 
-  // Step 1: Submit info
-  const handleInfoSubmit = handleSubmit(async (data) => {
+  // Submit shipping step: validates contact + address fields, then submits with selected shipping method
+  const handleShippingSubmit = handleSubmit(async (data) => {
+    if (!selectedShipping) {
+      toast.error('Please select a shipping method')
+      return
+    }
     clearError()
     const shippingAddress: ShippingAddress = {
       first_name: data.first_name || '',
@@ -125,25 +129,8 @@ export default function CheckoutPage() {
       country_code: data.country_code || '',
       phone: data.phone || '',
     }
-    await setContactAndAddress(data.email, shippingAddress)
-
-    // TODO: Store marketing opt-in preference in cart metadata or customer metadata
-    // For now, it's captured but not persisted
-    if (marketingOptIn) {
-      console.log('Customer opted in to marketing emails')
-    }
+    await submitShippingStep(data.email, shippingAddress, selectedShipping)
   })
-
-  // Step 2: Submit shipping
-  const handleShippingSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!selectedShipping) {
-      toast.error('Please select a shipping method')
-      return
-    }
-    clearError()
-    await submitShippingStep(email, address, selectedShipping)
-  }
 
   const buildSuccessUrl = (order: { id: string }) => {
     return `/checkout/success?order=${encodeURIComponent(order.id)}`
@@ -164,8 +151,6 @@ export default function CheckoutPage() {
         ? 'border-destructive focus:border-destructive'
         : 'border-foreground/20 focus:border-foreground'
     }`
-
-  const inputClass = "border-b border-foreground/20 bg-transparent px-0 py-3 text-sm placeholder:text-muted-foreground focus:border-foreground focus:outline-none transition-colors"
 
   return (
     <>
@@ -216,9 +201,9 @@ export default function CheckoutPage() {
               </div>
             )}
 
-            {/* Step 1: Contact + Address */}
-            {step === 'info' && (
-              <form onSubmit={handleInfoSubmit} className="space-y-8" noValidate>
+            {/* Step 1: Contact + Address + Shipping Method */}
+            {step === 'shipping' && (
+              <form onSubmit={handleShippingSubmit} className="space-y-8" noValidate>
                 <section>
                   <h2 className="text-xs uppercase tracking-widest font-semibold mb-4">Contact</h2>
 
@@ -399,33 +384,6 @@ export default function CheckoutPage() {
                   </div>
                 </section>
 
-                <button
-                  type="submit"
-                  disabled={isUpdating || !hasItems}
-                  className="w-full bg-foreground text-background py-3.5 text-sm font-semibold uppercase tracking-wide hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2"
-                >
-                  {isUpdating ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-                  Continue to Shipping
-                </button>
-              </form>
-            )}
-
-            {/* Step 2: Shipping Method */}
-            {step === 'shipping' && (
-              <form onSubmit={handleShippingSubmit} className="space-y-6">
-                <div className="p-4 border rounded-sm bg-muted/30 text-sm">
-                  <p className="text-muted-foreground">Shipping to</p>
-                  <p className="font-medium mt-1">{watchedAddress.first_name} {watchedAddress.last_name}</p>
-                  <p className="text-muted-foreground">{watchedAddress.address_1}, {watchedAddress.city} {watchedAddress.postal_code}</p>
-                  <button
-                    type="button"
-                    onClick={() => setStep('info')}
-                    className="text-xs font-semibold underline underline-offset-4 mt-2"
-                  >
-                    Edit
-                  </button>
-                </div>
-
                 <section>
                   <h2 className="text-xs uppercase tracking-widest font-semibold mb-4">Shipping Method</h2>
                   {loadingShipping ? (
@@ -471,24 +429,14 @@ export default function CheckoutPage() {
                   )}
                 </section>
 
-                <div className="flex gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setStep('info')}
-                    className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    <ArrowLeft className="h-4 w-4" />
-                    Back
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={isUpdating || !selectedShipping}
-                    className="flex-1 bg-foreground text-background py-3.5 text-sm font-semibold uppercase tracking-wide hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2"
-                  >
-                    {isUpdating ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-                    Continue to Payment
-                  </button>
-                </div>
+                <button
+                  type="submit"
+                  disabled={isUpdating || !hasItems || Object.keys(errors).length > 0}
+                  className="w-full bg-foreground text-background py-3.5 text-sm font-semibold uppercase tracking-wide hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {isUpdating ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+                  Continue to Payment
+                </button>
               </form>
             )}
 
@@ -560,7 +508,6 @@ export default function CheckoutPage() {
           {/* ============ RIGHT COLUMN: Order Summary + Shipping Methods ============ */}
           <div>
             <div className="sticky top-24 space-y-6">
-              {/* Order Summary */}
               {/* Order Summary */}
               <div className="border rounded-sm p-6">
                 <h2 className="text-xs uppercase tracking-widest font-semibold mb-6">Order Summary</h2>
@@ -646,55 +593,6 @@ export default function CheckoutPage() {
                 )}
               </div>
 
-              {/* Shipping Method — on the right, below order summary */}
-              {step === 'shipping' && (
-                <div className="border rounded-sm p-6">
-                  <h2 className="text-xs uppercase tracking-widest font-semibold mb-4">Shipping Method</h2>
-                  {loadingShipping ? (
-                    <div className="flex items-center justify-center py-6">
-                      <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-                    </div>
-                  ) : shippingOptions.length === 0 ? (
-                    <p className="text-sm text-muted-foreground py-2">No shipping options available.</p>
-                  ) : (
-                    <div className="space-y-2">
-                      {shippingOptions.map((option: any) => {
-                        const price = option.amount != null ? option.amount : option.prices?.[0]?.amount
-                        const priceLabel = price === 0 ? 'Free' : price != null ? formatPrice(price, currency) : '—'
-                        return (
-                          <label
-                            key={option.id}
-                            className={`flex items-center justify-between p-3 border rounded-sm cursor-pointer transition-colors ${
-                              selectedShipping === option.id ? 'border-foreground' : 'hover:border-foreground/50'
-                            }`}
-                          >
-                            <div className="flex items-center gap-3">
-                              <input type="radio" name="shipping" value={option.id} checked={selectedShipping === option.id} onChange={() => setSelectedShipping(option.id)} className="accent-foreground" />
-                              <div>
-                                <p className="text-sm font-medium">{option.name}</p>
-                                {option.type?.description && (
-                                  <p className="text-xs text-muted-foreground">{option.type.description}</p>
-                                )}
-                              </div>
-                            </div>
-                            <span className="text-sm font-medium">{priceLabel}</span>
-                          </label>
-                        )
-                      })}
-                    </div>
-                  )}
-
-                  <button
-                    type="submit"
-                    form="shipping-form"
-                    disabled={isUpdating || !selectedShipping || !hasItems}
-                    className="w-full mt-4 bg-foreground text-background py-3.5 text-sm font-semibold uppercase tracking-wide hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2"
-                  >
-                    {isUpdating ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-                    Continue to Payment
-                  </button>
-                </div>
-              )}
             </div>
           </div>
         </div>

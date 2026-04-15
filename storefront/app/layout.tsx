@@ -1,6 +1,6 @@
 import './globals.css'
 import type { Metadata } from 'next'
-import { Lato, Inter } from 'next/font/google'
+import { Playfair_Display, DM_Sans } from 'next/font/google'
 import { Providers } from './providers'
 import Header from '@/components/layout/header'
 import Footer from '@/components/layout/footer'
@@ -14,14 +14,14 @@ import dynamic from 'next/dynamic'
 
 const CookieConsent = dynamic(() => import('@/components/cookie-consent'))
 
-const heading = Lato({
+const heading = Playfair_Display({
   subsets: ['latin'],
-  weight: ['400', '700'],
+  weight: ['400', '500', '600', '700'],
   variable: '--font-heading',
   display: 'swap',
 })
 
-const body = Inter({
+const body = DM_Sans({
   subsets: ['latin'],
   weight: ['400', '500', '600'],
   variable: '--font-body',
@@ -30,10 +30,10 @@ const body = Inter({
 
 export const metadata: Metadata = {
   title: {
-    default: 'Store — Modern Commerce',
-    template: '%s | Store',
+    default: 'ScalpZen — Massaggiatore Elettrico per Cuoio Capelluto',
+    template: '%s | ScalpZen',
   },
-  description: 'Discover curated products crafted with care. A modern ecommerce experience.',
+  description: 'Rilassa, stimola e rigenera il tuo cuoio capelluto con ScalpZen Pro — il massaggiatore elettrico portatile con vibrazione, impermeabile e ricaricabile USB-C.',
 }
 
 export default function RootLayout({
@@ -42,11 +42,8 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className={`${heading.variable} ${body.variable}`} suppressHydrationWarning>
+    <html lang="it" className={`${heading.variable} ${body.variable}`} suppressHydrationWarning>
       <head>
-        {/* PostHog cross-origin iframe recording shim — records DOM via rrweb and forwards
-            events to the parent window (admin dashboard) for session replay.
-            Uses rrweb@2.0.0-alpha.20 (same version proven in ecomcoder production). */}
         <script dangerouslySetInnerHTML={{ __html: `
 (function() {
   'use strict';

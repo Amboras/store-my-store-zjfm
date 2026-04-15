@@ -4,35 +4,32 @@
 
 @layer base {
   :root {
-    --background: 40 20% 98%;
-    --foreground: 0 0% 10%;
-    --muted: 40 10% 94%;
-    --muted-foreground: 0 0% 45%;
-    --accent: 35 40% 50%;
+    /* ScalpZen brand — deep teal/forest wellness palette */
+    --background: 210 20% 98%;
+    --foreground: 210 25% 10%;
+    --muted: 210 15% 93%;
+    --muted-foreground: 210 10% 48%;
+    --accent: 168 55% 36%;
     --accent-foreground: 0 0% 100%;
-    --border: 40 10% 88%;
-    --ring: 35 40% 50%;
-    --primary: 0 0% 10%;
+    --border: 210 15% 88%;
+    --ring: 168 55% 36%;
+    --primary: 210 25% 12%;
     --primary-foreground: 0 0% 98%;
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 98%;
-
-    /* Brand colors (dynamically injected from Store.metadata.brand) */
-    /* Access in CSS: var(--brand-primary), var(--brand-secondary) */
-    /* Managed by BrandStyleInjector component */
   }
 
   .dark {
-    --background: 0 0% 6%;
-    --foreground: 40 20% 94%;
-    --muted: 0 0% 12%;
-    --muted-foreground: 0 0% 55%;
-    --accent: 35 45% 55%;
+    --background: 210 20% 7%;
+    --foreground: 210 20% 94%;
+    --muted: 210 15% 13%;
+    --muted-foreground: 210 10% 55%;
+    --accent: 168 55% 42%;
     --accent-foreground: 0 0% 100%;
-    --border: 0 0% 16%;
-    --ring: 35 45% 55%;
-    --primary: 40 20% 94%;
-    --primary-foreground: 0 0% 6%;
+    --border: 210 15% 18%;
+    --ring: 168 55% 42%;
+    --primary: 210 20% 90%;
+    --primary-foreground: 210 25% 8%;
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 98%;
   }
@@ -72,7 +69,7 @@
     @apply w-full;
   }
 
-  /* Brand color utilities - uses colors from Store.metadata.brand */
+  /* Brand color utilities */
   .btn-brand-primary {
     background-color: var(--brand-primary, hsl(var(--primary)));
     color: white;
@@ -100,6 +97,17 @@
   .bg-brand-secondary {
     background-color: var(--brand-secondary, hsl(var(--accent)));
   }
+
+  /* Teal accent shortcut */
+  .text-teal {
+    color: hsl(168 55% 36%);
+  }
+  .bg-teal {
+    background-color: hsl(168 55% 36%);
+  }
+  .border-teal {
+    border-color: hsl(168 55% 36%);
+  }
 }
 
 /* Smooth scrolling */
@@ -109,7 +117,8 @@ html {
 
 /* Selection color */
 ::selection {
-  @apply bg-accent/20 text-foreground;
+  background-color: hsl(168 55% 36% / 0.2);
+  color: hsl(var(--foreground));
 }
 
 /* Focus styles */
@@ -117,18 +126,39 @@ html {
   @apply outline-2 outline-offset-2 outline-ring;
 }
 
-/* Cookie consent animation */
+/* Animations */
 @keyframes fade-in {
-  from {
-    opacity: 0;
-    transform: translateY(1rem);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes slide-in-right {
+  from { transform: translateX(100%); }
+  to   { transform: translateX(0); }
+}
+@keyframes slide-out-right {
+  from { transform: translateX(0); }
+  to   { transform: translateX(100%); }
+}
+@keyframes pulse-ring {
+  0%   { transform: scale(0.9); opacity: 0.7; }
+  70%  { transform: scale(1.2); opacity: 0; }
+  100% { transform: scale(1.2); opacity: 0; }
+}
+@keyframes count-down {
+  from { width: 100%; }
+  to   { width: 0%; }
+}
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
 }
 
-.animate-fade-in {
-  animation: fade-in 0.3s ease-out;
-}
+.animate-fade-in         { animation: fade-in 0.5s ease-out; }
+.animate-fade-in-up      { animation: fade-in-up 0.6s ease-out; }
+.animate-slide-in-right  { animation: slide-in-right 0.3s ease-out; }
+.animate-slide-out-right { animation: slide-out-right 0.3s ease-out; }
+.animate-pulse-ring      { animation: pulse-ring 2s infinite; }
